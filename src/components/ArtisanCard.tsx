@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { MapPin, Zap } from "lucide-react";
 import { Artisan } from "@/lib/types";
-import { findMetier, findCanton } from "@/lib/constants";
+import { findMetier } from "@/lib/constants";
 import StarRating from "./StarRating";
 
 export default function ArtisanCard({ artisan }: { artisan: Artisan }) {
   const metier = findMetier(artisan.metier);
-  const canton = findCanton(artisan.canton);
-  const prixMin = Math.min(...artisan.services.map((s) => s.prix_chf));
+  const prixMin = artisan.services.length > 0 ? Math.min(...artisan.services.map((s) => s.prix_chf)) : null;
 
   return (
     <Link href={`/artisan/${artisan.id}`} className="card flex flex-col gap-4 p-5">
@@ -28,7 +27,7 @@ export default function ArtisanCard({ artisan }: { artisan: Artisan }) {
 
       <div className="flex items-center gap-2 text-sm text-brand-blue-600">
         <MapPin size={16} />
-        {artisan.ville}, {canton?.nom}
+        {artisan.ville}, {artisan.canton_nom}
       </div>
 
       <div className="flex items-center gap-2">
@@ -41,7 +40,13 @@ export default function ArtisanCard({ artisan }: { artisan: Artisan }) {
 
       <div className="mt-auto flex items-center justify-between border-t border-brand-blue-50 pt-4">
         <span className="text-sm text-brand-blue-500">
-          Dès <span className="font-bold text-brand-blue-900">{prixMin} CHF</span>
+          {prixMin !== null ? (
+            <>
+              Dès <span className="font-bold text-brand-blue-900">{prixMin} CHF</span>
+            </>
+          ) : (
+            "Tarifs sur demande"
+          )}
         </span>
         <span className="btn-primary !px-4 !py-2 text-sm">Prendre RDV</span>
       </div>

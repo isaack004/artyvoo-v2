@@ -1,16 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MapPin, Phone, Mail, Zap, Award } from "lucide-react";
-import { getArtisanById } from "@/lib/mockData";
-import { findMetier, findCanton } from "@/lib/constants";
+import { getArtisanById } from "@/lib/artisans";
+import { findMetier } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/server";
 import StarRating from "@/components/StarRating";
 
-export default function ArtisanPage({ params }: { params: { id: string } }) {
-  const artisan = getArtisanById(params.id);
+export default async function ArtisanPage({ params }: { params: { id: string } }) {
+  const artisan = await getArtisanById(createClient(), params.id);
   if (!artisan) notFound();
 
   const metier = findMetier(artisan.metier);
-  const canton = findCanton(artisan.canton);
 
   return (
     <div className="container-page grid gap-8 py-10 lg:grid-cols-3">
@@ -23,7 +23,7 @@ export default function ArtisanPage({ params }: { params: { id: string } }) {
 
         <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-brand-blue-600">
           <span className="flex items-center gap-1">
-            <MapPin size={16} /> {artisan.adresse}, {canton?.nom}
+            <MapPin size={16} /> {artisan.adresse}, {artisan.canton_nom}
           </span>
           <span className="flex items-center gap-1">
             <Award size={16} /> {artisan.annees_experience} ans d'expérience
@@ -34,6 +34,19 @@ export default function ArtisanPage({ params }: { params: { id: string } }) {
             </span>
           )}
         </div>
+
+        {artisan.specialites.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {artisan.specialites.map((s) => (
+              <span
+                key={s}
+                className="rounded-full border border-brand-blue-100 px-3 py-1 text-xs font-semibold text-brand-blue-600"
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="mt-3 flex items-center gap-2">
           <StarRating note={artisan.note_moyenne} />

@@ -23,7 +23,18 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const protectedPrefixes = ["/espace-pro", "/espace-client", "/admin"];
+  const isProtected = protectedPrefixes.some((prefix) => request.nextUrl.pathname.startsWith(prefix));
+  if (isProtected && !user) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/connexion";
+    url.searchParams.set("redirect", request.nextUrl.pathname);
+    return NextResponse.redirect(url);
+  }
 
   return response;
 }

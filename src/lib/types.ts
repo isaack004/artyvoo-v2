@@ -16,10 +16,12 @@ export type Avis = {
 
 export type Artisan = {
   id: string;
+  profile_id: string;
   nom: string;
   entreprise: string;
   metier: string; // slug
   canton: string; // code
+  canton_nom?: string; // résolu via la jointure cantons(nom), absent en mock
   ville: string;
   adresse: string;
   note_moyenne: number;
@@ -32,6 +34,13 @@ export type Artisan = {
   annees_experience: number;
   telephone: string;
   email: string;
+  valide: boolean;
+  ide_number: string | null;
+  ide_verifie: boolean;
+  specialites: string[];
+  couverture_canton_entier: boolean;
+  leads_gratuits_utilises: number;
+  compte_actif: boolean;
 };
 
 export type CreneauDisponible = {

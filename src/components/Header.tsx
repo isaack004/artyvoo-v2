@@ -7,7 +7,7 @@ export default function Header() {
       <div className="container-page flex h-16 items-center justify-between">
         <Logo />
         <nav className="hidden items-center gap-6 text-sm font-medium text-brand-blue-700 md:flex">
-          <Link href="/recherche" className="hover:text-brand-orange-500">
+          <Link href="/reserver" className="hover:text-brand-orange-500">
             Trouver un artisan
           </Link>
           <Link href="/devenir-artisan" className="hover:text-brand-orange-500">

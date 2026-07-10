@@ -1,7 +1,7 @@
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
 import ArtisanCard from "@/components/ArtisanCard";
-import { searchArtisans } from "@/lib/mockData";
+import { searchArtisans } from "@/lib/artisans";
 import { METIERS, findMetier } from "@/lib/constants";
 import { fetchCantons } from "@/lib/regions";
 import { createClient } from "@/lib/supabase/server";
@@ -14,9 +14,10 @@ export default async function RecherchePage({
   const metier = searchParams.metier ?? "";
   const canton = searchParams.canton ?? "";
   const ville = searchParams.ville ?? "";
-  const resultats = searchArtisans({ metier, canton, ville });
+  const supabase = createClient();
+  const resultats = await searchArtisans(supabase, { metier, canton, ville });
 
-  const cantons = await fetchCantons(createClient());
+  const cantons = await fetchCantons(supabase);
   const metierLabel = findMetier(metier)?.pluriel;
   const cantonLabel = cantons.find((c) => c.code === canton)?.nom;
 

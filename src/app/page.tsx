@@ -3,11 +3,16 @@ import { ShieldCheck, CalendarCheck, Star, Search } from "lucide-react";
 import SearchBar from "@/components/SearchBar";
 import CategoryGrid from "@/components/CategoryGrid";
 import ArtisanCard from "@/components/ArtisanCard";
-import { ARTISANS } from "@/lib/mockData";
-import { CANTONS } from "@/lib/constants";
+import { searchArtisans } from "@/lib/artisans";
+import { fetchCantons } from "@/lib/regions";
+import { createClient } from "@/lib/supabase/server";
 
-export default function HomePage() {
-  const artisansPopulaires = ARTISANS.slice(0, 3);
+export default async function HomePage() {
+  const supabase = createClient();
+  const [tousArtisans, cantons] = await Promise.all([searchArtisans(supabase, {}), fetchCantons(supabase)]);
+  const artisansPopulaires = [...tousArtisans]
+    .sort((a, b) => b.note_moyenne - a.note_moyenne)
+    .slice(0, 3);
 
   return (
     <>
@@ -24,8 +29,11 @@ export default function HomePage() {
           <div className="w-full max-w-2xl">
             <SearchBar />
           </div>
+          <Link href="/reserver" className="text-sm font-semibold text-brand-orange-500 hover:underline">
+            Ou laissez-vous guider pas à pas, avec géolocalisation →
+          </Link>
           <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-brand-blue-500">
-            {CANTONS.map((c) => (
+            {cantons.map((c) => (
               <Link
                 key={c.code}
                 href={`/recherche?canton=${c.code}`}

@@ -33,6 +33,8 @@ type ArtisanRow = {
   couverture_canton_entier: boolean;
   leads_gratuits_utilises: number;
   compte_actif: boolean;
+  pay_per_lead_enabled: boolean;
+  stripe_customer_id: string | null;
   profiles: ProfileRef;
   services: Service[] | null;
   avis: { id: string; note: number; commentaire: string | null; created_at: string; profiles: ProfileRef }[] | null;
@@ -83,6 +85,8 @@ function mapArtisanRow(row: ArtisanRow): Artisan {
     couverture_canton_entier: row.couverture_canton_entier,
     leads_gratuits_utilises: row.leads_gratuits_utilises,
     compte_actif: row.compte_actif,
+    pay_per_lead_enabled: row.pay_per_lead_enabled,
+    stripe_customer_id: row.stripe_customer_id,
   };
 }
 

@@ -41,6 +41,8 @@ export type Artisan = {
   couverture_canton_entier: boolean;
   leads_gratuits_utilises: number;
   compte_actif: boolean;
+  pay_per_lead_enabled: boolean;
+  stripe_customer_id: string | null;
 };
 
 export type CreneauDisponible = {

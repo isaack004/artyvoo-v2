@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CalendarDays, Wrench, Clock } from "lucide-react";
+import { LayoutDashboard, CalendarDays, Wrench, Clock, CreditCard } from "lucide-react";
 
 const LIENS = [
   { href: "/espace-pro", label: "Aperçu", icon: LayoutDashboard },
   { href: "/espace-pro/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/espace-pro/services", label: "Services", icon: Wrench },
   { href: "/espace-pro/disponibilites", label: "Disponibilités", icon: Clock },
+  { href: "/espace-pro/abonnement", label: "Abonnement", icon: CreditCard },
 ];
 
 export default function ProNav() {

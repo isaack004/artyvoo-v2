@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendClientConfirmation, sendArtisanNotification } from "@/lib/email";
+import { getStripe, PRIX_LEAD_CHF } from "@/lib/stripe";
 
 const LEADS_GRATUITS_MAX = 5;
 
@@ -52,7 +53,9 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
   const { data: artisan } = await admin
     .from("artisans")
-    .select("entreprise, email, leads_gratuits_utilises, pay_per_lead_enabled")
+    .select(
+      "entreprise, email, leads_gratuits_utilises, pay_per_lead_enabled, stripe_customer_id, stripe_payment_method_id"
+    )
     .eq("id", artisanId)
     .maybeSingle();
 
@@ -64,7 +67,40 @@ export async function POST(request: Request) {
       .eq("statut", "active");
 
     const nouveauCompteur = (artisan.leads_gratuits_utilises ?? 0) + 1;
-    const compteActif = Boolean(abonnementActif) || artisan.pay_per_lead_enabled || nouveauCompteur <= LEADS_GRATUITS_MAX;
+    const depasseQuotaGratuit = nouveauCompteur > LEADS_GRATUITS_MAX;
+    let compteActif = Boolean(abonnementActif) || !depasseQuotaGratuit;
+
+    // Pay-per-lead : facture ce lead hors-session via le moyen de paiement
+    // enregistré (SetupIntent complété dans /api/stripe/checkout). Si la
+    // charge échoue (carte refusée...), l'artisan repasse en "à activer"
+    // comme s'il n'avait pas de moyen de paiement au lead.
+    if (!abonnementActif && depasseQuotaGratuit && artisan.pay_per_lead_enabled) {
+      if (artisan.stripe_customer_id && artisan.stripe_payment_method_id) {
+        try {
+          const stripe = getStripe();
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: PRIX_LEAD_CHF * 100,
+            currency: "chf",
+            customer: artisan.stripe_customer_id,
+            payment_method: artisan.stripe_payment_method_id,
+            off_session: true,
+            confirm: true,
+            metadata: { artisan_id: artisanId, appointment_id: appointment.id },
+          });
+          await admin.from("leads_paid").insert({
+            artisan_id: artisanId,
+            appointment_id: appointment.id,
+            stripe_payment_intent_id: paymentIntent.id,
+            montant_chf: PRIX_LEAD_CHF,
+          });
+          compteActif = true;
+        } catch {
+          compteActif = false;
+        }
+      } else {
+        compteActif = false;
+      }
+    }
 
     await admin
       .from("artisans")

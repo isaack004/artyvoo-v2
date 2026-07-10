@@ -4,9 +4,10 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://artyvoo.ch"),
   title: "Artyvoo — Trouvez un artisan de confiance en Suisse romande",
   description:
-    "Prenez rendez-vous en ligne avec des plombiers, électriciens, serruriers, chauffagistes et jardiniers à Genève, Vaud, Jura, Berne (Jura bernois) et Valais.",
+    "Prenez rendez-vous en ligne avec des plombiers, électriciens, serruriers, chauffagistes et jardiniers en Suisse romande.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

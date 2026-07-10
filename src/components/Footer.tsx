@@ -1,8 +1,12 @@
 import Link from "next/link";
 import Logo from "./Logo";
-import { METIERS, CANTONS } from "@/lib/constants";
+import { METIERS } from "@/lib/constants";
+import { fetchCantons } from "@/lib/regions";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Footer() {
+export default async function Footer() {
+  const cantons = await fetchCantons(createClient());
+
   return (
     <footer className="mt-24 border-t border-brand-blue-100 bg-brand-blue-900 text-brand-blue-100">
       <div className="container-page grid gap-10 py-12 md:grid-cols-4">
@@ -27,7 +31,7 @@ export default function Footer() {
         <div>
           <h3 className="mb-3 font-semibold text-white">Cantons couverts</h3>
           <ul className="space-y-2 text-sm">
-            {CANTONS.map((c) => (
+            {cantons.map((c) => (
               <li key={c.code}>
                 <Link href={`/recherche?canton=${c.code}`} className="hover:text-brand-orange-400">
                   {c.nom}

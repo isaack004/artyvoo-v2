@@ -19,18 +19,57 @@ export type Ville = {
   lng: number | null;
 };
 
+// Repli utilisé tant que les migrations supabase/migrations/0001_regions.sql
+// n'ont pas été exécutées sur le projet Supabase (ou si celui-ci n'est pas
+// encore configuré) : reprend les 5 cantons/villes qui existaient en dur
+// dans constants.ts, pour ne rien casser en attendant. Sans lat/lng, donc la
+// géolocalisation ne résout rien en mode repli (fallback gracieux vers la
+// sélection manuelle, cf. RegionPicker).
+const FALLBACK_CANTONS: Canton[] = [
+  { code: "GE", nom: "Genève" },
+  { code: "VD", nom: "Vaud" },
+  { code: "JU", nom: "Jura" },
+  { code: "BE", nom: "Berne (Jura bernois)" },
+  { code: "VS", nom: "Valais" },
+];
+
+const FALLBACK_VILLES: Record<string, string[]> = {
+  GE: ["Genève", "Carouge", "Lancy", "Meyrin", "Vernier", "Onex", "Thônex"],
+  VD: ["Lausanne", "Yverdon-les-Bains", "Montreux", "Nyon", "Vevey", "Renens", "Morges"],
+  JU: ["Delémont", "Porrentruy", "Saignelégier"],
+  BE: ["Bienne", "Moutier", "Tavannes", "Saint-Imier"],
+  VS: ["Sion", "Martigny", "Sierre", "Monthey", "Fully"],
+};
+
+function fallbackVilles(cantonCode?: string): Ville[] {
+  const entries = cantonCode
+    ? [[cantonCode, FALLBACK_VILLES[cantonCode] ?? []] as const]
+    : Object.entries(FALLBACK_VILLES);
+  return entries.flatMap(([code, noms]) =>
+    noms.map((nom) => ({ id: `${code}-${nom}`, canton_code: code, nom, npa: null, lat: null, lng: null }))
+  );
+}
+
 export async function fetchCantons(supabase: SupabaseClient): Promise<Canton[]> {
-  const { data, error } = await supabase.from("cantons").select("code, nom").order("nom");
-  if (error) throw error;
-  return data ?? [];
+  try {
+    const { data, error } = await supabase.from("cantons").select("code, nom").order("nom");
+    if (error) throw error;
+    return data && data.length > 0 ? data : FALLBACK_CANTONS;
+  } catch {
+    return FALLBACK_CANTONS;
+  }
 }
 
 export async function fetchVilles(supabase: SupabaseClient, cantonCode?: string): Promise<Ville[]> {
-  let query = supabase.from("villes").select("id, canton_code, nom, npa, lat, lng").order("nom");
-  if (cantonCode) query = query.eq("canton_code", cantonCode);
-  const { data, error } = await query;
-  if (error) throw error;
-  return data ?? [];
+  try {
+    let query = supabase.from("villes").select("id, canton_code, nom, npa, lat, lng").order("nom");
+    if (cantonCode) query = query.eq("canton_code", cantonCode);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data && data.length > 0 ? data : fallbackVilles(cantonCode);
+  } catch {
+    return fallbackVilles(cantonCode);
+  }
 }
 
 // À l'inscription d'un artisan avec une ville absente de la table (saisie

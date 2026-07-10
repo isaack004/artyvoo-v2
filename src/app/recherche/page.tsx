@@ -2,24 +2,28 @@ import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
 import ArtisanCard from "@/components/ArtisanCard";
 import { searchArtisans } from "@/lib/mockData";
-import { CANTONS, METIERS, findMetier, findCanton } from "@/lib/constants";
+import { METIERS, findMetier } from "@/lib/constants";
+import { fetchCantons } from "@/lib/regions";
+import { createClient } from "@/lib/supabase/server";
 
-export default function RecherchePage({
+export default async function RecherchePage({
   searchParams,
 }: {
-  searchParams: { metier?: string; canton?: string };
+  searchParams: { metier?: string; canton?: string; ville?: string };
 }) {
   const metier = searchParams.metier ?? "";
   const canton = searchParams.canton ?? "";
-  const resultats = searchArtisans({ metier, canton });
+  const ville = searchParams.ville ?? "";
+  const resultats = searchArtisans({ metier, canton, ville });
 
+  const cantons = await fetchCantons(createClient());
   const metierLabel = findMetier(metier)?.pluriel;
-  const cantonLabel = findCanton(canton)?.nom;
+  const cantonLabel = cantons.find((c) => c.code === canton)?.nom;
 
   return (
     <div className="container-page py-10">
       <div className="mb-8">
-        <SearchBar defaultMetier={metier} defaultCanton={canton} />
+        <SearchBar defaultMetier={metier} defaultCanton={canton} defaultVille={ville} />
       </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-2">
@@ -32,7 +36,7 @@ export default function RecherchePage({
         >
           Tous
         </Link>
-        {CANTONS.map((c) => (
+        {cantons.map((c) => (
           <Link
             key={c.code}
             href={`/recherche?${metier ? `metier=${metier}&` : ""}canton=${c.code}`}
@@ -75,7 +79,7 @@ export default function RecherchePage({
       <h1 className="mb-6 text-xl font-bold text-brand-blue-900">
         {resultats.length} artisan{resultats.length > 1 ? "s" : ""} trouvé{resultats.length > 1 ? "s" : ""}
         {metierLabel ? ` · ${metierLabel}` : ""}
-        {cantonLabel ? ` · ${cantonLabel}` : ""}
+        {ville ? ` · ${ville}` : cantonLabel ? ` · ${cantonLabel}` : ""}
       </h1>
 
       {resultats.length === 0 ? (

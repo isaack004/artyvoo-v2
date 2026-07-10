@@ -21,7 +21,7 @@ as $$
   from public.artisans a
   where a.valide = true
     and a.compte_actif = true
-    and (p_metier is null or a.metier = p_metier)
+    and (p_metier is null or a.metier::text = p_metier)
     and (
       p_canton is null
       or a.canton = p_canton

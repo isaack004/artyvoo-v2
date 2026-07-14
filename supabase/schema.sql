@@ -38,13 +38,13 @@ begin
   insert into public.profiles (id, role, prenom, nom)
   values (
     new.id,
-    coalesce((new.raw_user_meta_data ->> 'role')::user_role, 'particulier'),
+    coalesce((new.raw_user_meta_data ->> 'role')::public.user_role, 'particulier'),
     new.raw_user_meta_data ->> 'prenom',
     new.raw_user_meta_data ->> 'nom'
   );
   return new;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = public, pg_temp;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
